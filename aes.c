@@ -28,8 +28,7 @@ void shiftRows(byte* state) {
 }
 
 void mixColumns(byte* state) {
-    int i;
-    for (i = 0; i < 16; i += 4) {
+    for (int i = 0; i < 16; i += 4) {
         byte s0 = state[i], s1 = state[i + 1], s2 = state[i + 2], s3 = state[i + 3];
         state[i] = xtime(s0) ^ (s1 ^ xtime(s1)) ^ s2 ^ s3;
         state[i + 1] = s0 ^ xtime(s1) ^ (s2 ^ xtime(s2)) ^ s3;
@@ -40,13 +39,12 @@ void mixColumns(byte* state) {
 
 word subWord(word w) {
     word result = 0;
-    int i;
-    for (i = 0; i < 4; i++) result ^= sbox[(w >> (3 - i) * 8) & 0x000000ff] << (3 - i) * 8;
+    for (int i = 0; i < 4; i++) result ^= sbox[(w >> (3 - i) * 8) & 0x000000ff] << (3 - i) * 8;
     return result;
 }
 
 word rotWord(word w) {
-    return (w<<8|w>>24) & 0xffffffff;
+    return (w << 8 | w >> 24) & 0xffffffff;
 }
 
 void keyExpansion(byte* key, word* w, int nk) {
@@ -153,8 +151,6 @@ void invMixColumns(byte* state) {
         state[i + 3] = s11(s0) ^ s13(s1) ^ s9(s2) ^ s14(s3);
     }
 }
-
-
 
 void invCipher(byte* in, byte* out, word* w) {
     byte* state = (byte*) malloc(4*Nb*sizeof(byte));
