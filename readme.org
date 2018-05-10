@@ -1,0 +1,64 @@
+#+title: AES C
+#+author: Miguel Piña
+#+date: [2018-05-10 jue 12:28]
+#+setupfile: ~/proyectos/org-html-themes/setup/theme-bigblow.setup
+
+Implementación del algoritmo "Advanced Encryption Standard - AES" siguiendo las
+especificaciones del /Federal Information Procesing Standards 197/.
+
+Para compilar esta versión se requiere de un compilador que soporte C11 /(ISO/IEC
+9899:2011)/ que es el estándar actual del lenguaje de C. Las versiones actuales
+de GCC lo soportan.
+
+* Compilación
+
+Para compilar el código, basta con ejecutar la instrucción make:
+
+#+begin_src sh
+make
+#+end_src
+
+Este comando genera un ejecutable llamado *aes*.
+
+* Ejecución
+
+Hasta el momento tiene hardcoded un par de ejemplos de cifrado y descifrado que
+son ejemplos que se muestran en el documento del /FIPS/. Para ejecutarlo, hay que
+ejecutar en una terminal la siguiente instrucción:
+
+#+begin_src sh
+./aes
+#+end_src
+
+Dando una salida como la siguiente:
+
+#+begin_src sh
+ 25%  12:28:17  aes-c   master  ?  $  ./aes
+Cipher
+
+Estado:
+32 88 31 e0
+43 5a 31 37
+f6 30 98 07
+a8 8d a2 34
+
+Cifrado
+39 02 dc 19
+25 dc 11 6a
+84 09 85 0b
+1d fb 97 32
+
+
+Estado
+
+7a 89 2b 3d
+d5 ef ca 9f
+fd 4e 10 f5
+a7 27 0b 9f
+
+Descifrado
+00 44 88 cc
+11 55 99 dd
+22 66 aa ee
+33 77 bb ff
+#+end_src
