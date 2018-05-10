@@ -11,14 +11,3 @@ compile: compile.o
 
 clean:
 	-rm -f aes.o aes
-
-# default: compile
-
-# compile.o: DemoRc2.c $(HEADERS)
-# 	gcc -Wall -pedantic -ansi -c DemoRc2.c -o DemoRc2.o
-# compile: compile.o
-# 	gcc DemoRc2.o -o DemoRc2
-# 	@echo "Compilación correcta"
-
-# clean:
-# 	-rm -f DemoRc2.o DemoRc2
