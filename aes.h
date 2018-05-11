@@ -1,11 +1,24 @@
 #include <stdio.h>
 
+#define Nb 4
+#define TRUE 1
+#define FALSE 0
+
 typedef unsigned int word;
 typedef unsigned char byte;
+typedef int BOOLEAN;
 
-#define Nb 4
-#define Nk 4
-#define Nr 10
+char ent[128];
+char sal[128];
+char archivoLlave[128];
+byte* datos;
+byte* llave;
+FILE *fpllave;
+BOOLEAN cifrar = TRUE;
+unsigned long tamArchivo;
+int tipo;
+int Nk;
+int Nr;
 
 const word rcon[] = {0x00000000, 0x01000000, 0x02000000,
                      0x04000000, 0x08000000, 0x10000000,
@@ -51,3 +64,8 @@ void shiftRows();
 void mixColumns();
 int mulPol();
 void imprimeEstado();
+void uso();
+void substring();
+byte* leeDatos();
+void cifraODescifra();
+void ProcesaArgv();

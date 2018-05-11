@@ -1,17 +1,79 @@
-#include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "aes.h"
 
-void subBytes(byte* state) {
-    for (int i = 0; i < 16; i++) state[i] = sbox[state[i]];
+/*********************/
+/* Función principal */
+/*********************/
+
+int main(int argc, char *argv[]) {
+    ProcesaArgv(argc, argv);
+    datos = leeDatos(ent);
+    cifraODescifra(datos);
+    return 0;
 }
 
+
+/******************************************************************************/
+/* Funciones de apoyo: Funciones simples que permiten evitar la ofuscación de */
+/*   código y que permiten facilitar la lectura del código                    */
+/******************************************************************************/
+
+/*
+ * Transforma los bits a, b, c, d en el entero 0xabcd.
+ */
 word toWord(byte a, byte b, byte c, byte d) {
     return (a & 0xff) << 24 | (b & 0x00ff) << 16 | (c & 0x0000ff) << 8 | d;
 }
 
+/*
+ *
+ */
 byte xtime(byte a) {
     return (a << 1 ^ ((a & 0x80) ? 0x1b : 0)) & 0xff;
+}
+
+byte xtime9(byte i) {
+    byte i2 = xtime(i), i4 = xtime(i2), i8 = xtime(i4);
+    return i8 ^ i;
+}
+
+byte xtime11(byte i) {
+    byte i2 = xtime(i), i4 = xtime(i2), i8 = xtime(i4);
+    return i8 ^ i2 ^ i;
+}
+
+byte xtime13(byte i) {
+    byte i2 = xtime(i), i4 = xtime(i2), i8 = xtime(i4);
+    return i8 ^ i4 ^ i;
+}
+
+byte xtime14(byte i) {
+    byte i2 = xtime(i), i4 = xtime(i2), i8 = xtime(i4);
+    return i8 ^ i4 ^ i2;
+}
+
+word subWord(word w) {
+    word result = 0;
+    for (int i = 0; i < 4; i++) result ^= sbox[(w >> (3 - i) * 8) & 0x000000ff] << (3 - i) * 8;
+    return result;
+}
+
+word rotWord(word w) {
+    return (w << 8 | w >> 24) & 0xffffffff;
+}
+
+void copySubArray(word* in, word* out, int i, int j) {
+    for (int k = 0 ; i < j; i++, k++) out[k] = in[i];
+}
+
+void copySubArrayByte(byte* in, byte* out, int i, int j) {
+    for (int k = 0 ; i < j; i++, k++) out[k] = in[i];
+}
+
+void subBytes(byte* state) {
+    for (int i = 0; i < 16; i++) state[i] = sbox[state[i]];
 }
 
 void shiftRows(byte* state) {
@@ -37,15 +99,7 @@ void mixColumns(byte* state) {
     }
 }
 
-word subWord(word w) {
-    word result = 0;
-    for (int i = 0; i < 4; i++) result ^= sbox[(w >> (3 - i) * 8) & 0x000000ff] << (3 - i) * 8;
-    return result;
-}
 
-word rotWord(word w) {
-    return (w << 8 | w >> 24) & 0xffffffff;
-}
 
 void keyExpansion(byte* key, word* w, int nk) {
     word temp;
@@ -73,11 +127,7 @@ void addRoundKey(byte* state, word* key) {
     }
 }
 
-void copySubArray(word* in, word* out, int i, int j) {
-    for (int k = 0 ; i < j; i++, k++) {
-        out[k] = in[i];
-    }
-}
+
 
 void cipher(byte* in, byte* out, word* w) {
     byte* state = (byte*) malloc(4*Nb*sizeof(byte));
@@ -104,6 +154,11 @@ void cipher(byte* in, byte* out, word* w) {
     free(state);
 }
 
+/****************************************/
+/* Sección de funciones para descifrado */
+/****************************************/
+
+
 void invShiftRows(byte* state) {
     byte* s = (byte*) malloc(16 * sizeof(byte));
     for (int r = 1; r < 4; r++) {
@@ -121,34 +176,14 @@ void invSubBytes(byte* state) {
     for (int i = 0; i < 16; i++) state[i] = inv_sbox[state[i]];
 }
 
-byte s9(byte i) {
-    byte i2 = xtime(i), i4 = xtime(i2), i8 = xtime(i4);
-    return i8 ^ i;
-}
-
-byte s11(byte i) {
-    byte i2 = xtime(i), i4 = xtime(i2), i8 = xtime(i4);
-    return i8 ^ i2 ^ i;
-}
-
-byte s13(byte i) {
-    byte i2 = xtime(i), i4 = xtime(i2), i8 = xtime(i4);
-    return i8 ^ i4 ^ i;
-}
-
-byte s14(byte i) {
-    byte i2 = xtime(i), i4 = xtime(i2), i8 = xtime(i4);
-    return i8 ^ i4 ^ i2;
-}
-
 void invMixColumns(byte* state) {
     int i;
     for (i = 0; i < 16; i += 4) {
         byte s0 = state[i], s1 = state[i + 1], s2 = state[i + 2], s3 = state[i + 3];
-        state[i] = s14(s0) ^ s11(s1) ^ s13(s2) ^ s9(s3);
-        state[i + 1] = s9(s0) ^ s14(s1) ^ s11(s2) ^ s13(s3);
-        state[i + 2] = s13(s0) ^ s9(s1) ^ s14(s2) ^ s11(s3);
-        state[i + 3] = s11(s0) ^ s13(s1) ^ s9(s2) ^ s14(s3);
+        state[i] = xtime14(s0) ^ xtime11(s1) ^ xtime13(s2) ^ xtime9(s3);
+        state[i + 1] = xtime9(s0) ^ xtime14(s1) ^ xtime11(s2) ^ xtime13(s3);
+        state[i + 2] = xtime13(s0) ^ xtime9(s1) ^ xtime14(s2) ^ xtime11(s3);
+        state[i + 3] = xtime11(s0) ^ xtime13(s1) ^ xtime9(s2) ^ xtime14(s3);
     }
 }
 
@@ -160,7 +195,6 @@ void invCipher(byte* in, byte* out, word* w) {
 
     copySubArray(w, aux, Nr*Nb, (Nr + 1) * Nb);
     addRoundKey(state, aux);
-    imprimeEstado(state);
 
     for (int i = Nr - 1; i > 0; i--) {
         invShiftRows(state);
@@ -188,31 +222,171 @@ void imprimeEstado(byte* state) {
     }
 }
 
-int main() {
-    byte key[16] = {0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c};
-    byte nkey[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
-    word* w = (word*) calloc(Nb * (Nr + 1), sizeof(word));
-    word* w2 = (word*) calloc(Nb * (Nr + 1), sizeof(word));
-    byte* out = (byte *) calloc(16, sizeof(byte));
-    byte* out2 = (byte *) calloc(16, sizeof(byte));
-    byte input[16] = {0x32, 0x43, 0xf6, 0xa8, 0x88, 0x5a, 0x30, 0x8d, 0x31, 0x31, 0x98, 0xa2, 0xe0, 0x37, 0x07, 0x34};
-    byte inputInv[16] = {0x69, 0xc4, 0xe0, 0xd8, 0x6a, 0x7b, 0x04, 0x30, 0xd8, 0xcd, 0xb7, 0x80, 0x70, 0xb4, 0xc5, 0x5a};
-    keyExpansion(key, w, Nk);
+void substring(char s[], char sub[], int p, int l) {
+   int c = 0;
+    while (c < l) {
+      sub[c] = s[p+c-1];
+      c++;
+   }
+   sub[c] = '\0';
+}
 
-    printf("Cipher\n\n");
-    printf("Estado: \n");
-    imprimeEstado(input);
-    cipher(input, out, w);
-    printf("\nCifrado\n");
-    imprimeEstado(out);
-    keyExpansion(nkey, w2, Nk);
-    printf("\n\nEstado\n\n");
-    invCipher(inputInv, out2, w2);
-    printf("\nDescifrado\n");
-    imprimeEstado(out2);
-    free(out);
-    free(out2);
-    free(w);
-    free(w2);
-    return 0;
+void cifra(byte* input, byte* output, word* expandedKeys, int longEnt, int* longSal) {
+    int i;
+    int longPad = 16 - (longEnt % 16);
+    printf("Tamaño entrada: %d\n", longEnt);
+    byte* state = (byte*) calloc(4 *Nb, sizeof(byte));
+    byte* out = (byte*) calloc(4 * Nb, sizeof(byte));
+    for(i=0; i < longPad; i++) {
+        input[longEnt + i] = (unsigned int)longPad;
+    }
+    *longSal = longEnt + longPad;  /* La longitud del buffer por cifrar. */
+    /* ¡A cifrar! */
+    for(i=0; i < *longSal; i+=16) {
+        copySubArrayByte(input, state, i, i + 16);
+        cipher(state, out, expandedKeys);
+        printf("Estado\n\n");
+        imprimeEstado(state);
+        printf("Salida\n\n");
+        imprimeEstado(out);
+        printf("\n\n");
+        for (int j = 0; j < 16; j++) {
+            output[i+j] = out[j];
+        }
+    }
+    for (int j = 0; j < *longSal; j++) {
+        printf("%c ", output[j]);
+    }
+}
+
+void descifra(byte* input, byte* output, word* expandedKeys, int longEnt,int *longSal) {
+    int i;
+    byte* state = (byte*) calloc(4 * Nb, sizeof(byte));
+    byte* out = (byte*) calloc(4 * Nb, sizeof(byte));
+    /* ¡A descifrar! */
+    for (i = 0; i < longEnt; i += 16) {
+        copySubArrayByte(input, state, i, i + 16);
+        invCipher(state, out, expandedKeys);
+        for (int j = 0; j < 16; j++) {
+            output[i+j] = out[j];
+        }
+    }
+    *longSal = longEnt - (byte) output[longEnt - 1];  /* Quitamos padding. */
+}
+
+void cifraODescifra(byte* datos) {
+    int* longSal = malloc(sizeof(int));
+    FILE* salida;
+    byte* output = (byte*) calloc(tamArchivo, sizeof(byte));
+    word* w = (word*) calloc(Nb * (Nr + 1), sizeof(word));
+    keyExpansion(llave, w, Nk);
+    if (cifrar) {
+        cifra(datos, output, w, tamArchivo, longSal);
+    } else {
+        descifra(datos, output, w, tamArchivo, longSal);
+    }
+    salida = fopen(sal, "wb");
+    fwrite(output, 1, *longSal, salida);
+    fclose(salida);
+    free(datos);
+}
+
+byte* leeDatos(char* nombre) {
+    FILE *archivo;
+    int pad;
+    byte* datos;
+    archivo = fopen(nombre, "rb");
+    if (!archivo) {
+        fprintf(stderr, "No se puede abrir el archivo %s\n", nombre);
+        exit(1);
+    }
+    fseek(archivo, 0, SEEK_END);
+    tamArchivo = ftell(archivo);
+    pad = 16 - (tamArchivo % 16);
+    fseek(archivo, 0, SEEK_SET);
+    datos = malloc(tamArchivo + pad);
+    if (!datos) {
+        fprintf(stderr, "Error de memoria!");
+        fclose(archivo);
+        exit(1);
+    }
+    fread(datos, tamArchivo, 1, archivo);
+    fclose(archivo);
+    return datos;
+}
+
+/**
+ * Procesa los argumentos que se la pasan al programa.
+ */
+void ProcesaArgv(int argc, char *argv[]) {
+    if (argc < 2)  {
+        uso();
+        exit(0);
+    }
+
+    strcpy(ent, argv[4]);
+    strcpy(sal, argv[4]);
+    strcpy(archivoLlave, argv[3]);
+    char type[3];
+    substring(argv[2], type, 2, 4);
+    if (argv[2][0] == '-') {
+        if (!strcmp("128", type)) {
+            tipo = 128, Nk = 4, Nr = 10;
+        } else if (!strcmp("192", type)) {
+            tipo = 192, Nk = 6, Nr = 12;
+        } else if (!strcmp("256", type)) {
+            tipo = 256, Nk = 8, Nk = 14;
+        } else {
+            uso();
+            exit(0);
+        }
+    }
+
+
+    if (argv[1][0] == '-') {
+        switch (argv[1][1]) {
+        case 'c':
+            cifrar = TRUE;
+            break;
+        case 'd':
+            cifrar = FALSE;
+            break;
+        case 'h':
+        default:
+            uso();
+            exit(0);
+        }
+    }
+
+    if ((fpllave = fopen(archivoLlave, "r")) == NULL) {
+        fprintf(stderr, "RC2-Error: No puedo abrir la llave %s\n", archivoLlave);
+        exit(1);
+    } else {
+        int i;
+        char* text = malloc(sizeof(char) * 2);
+        llave = (byte*) calloc(4 * Nk, sizeof(byte));
+        for(i = 0; i < 4 * Nk; i++) {
+            fread(&text[0], 1, 1, fpllave);
+            if (text[0] == ' ') {
+                fread(&text[0], 1, 1, fpllave);
+            }
+            fread(&text[1], 1, 1, fpllave);
+            llave[i] = (unsigned char) strtol(text, NULL, 16);
+        }
+        free(text);
+    }
+}
+
+
+void uso() {
+    printf("\nUso: $ aes [- c | -d ] [-128 | -192 | -256] LLAVE  ARCHIVO\n");
+    printf("Herramienta para cifrar usando el algoritmo AES. LLAVE y ARCHIVO son archivos.\n");
+    printf("Se espera que el formato de la llave se encuentre en hexadecimal de tamaño 128, 192 ó 256.\n");
+    printf("\nLas opciones disponibles de uso son las siguientes:\n");
+    printf("       -c: para cifrar el archivo.\n");
+    printf("       -d: para descifrar el archivo.\n");
+    printf("\n\nEjemplo de uso: RC2 -c key 5 64 datos.txt\n\n");
+    printf("Donde \"key\" es el archivo con la llave, 5 es el número de bytes de la llave y\n");
+    printf("64 es la longitud máxima efectiva de la llave. \"datos.txt\" es el archivo\n");
+    printf("a cifrar\n");
 }
