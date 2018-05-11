@@ -22,43 +22,20 @@ Este comando genera un ejecutable llamado *aes*.
 
 * Ejecución
 
-Hasta el momento tiene hardcoded un par de ejemplos de cifrado y descifrado que
-son ejemplos que se muestran en el documento del /FIPS/. Para ejecutarlo, hay que
-ejecutar en una terminal la siguiente instrucción:
+Uso: $ aes [- c | -d ] [-128 | -192 | -256] LLAVE  ARCHIVO
+Herramienta para cifrar usando el algoritmo AES. LLAVE y ARCHIVO son archivos.
+Se espera que el formato de la llave se encuentre en hexadecimal de tamaño 128, 192 ó 256.
 
+Las opciones disponibles de uso son las siguientes:
+       -c: para cifrar el archivo.
+       -d: para descifrar el archivo.
+
+
+** Ejemplo de uso:
 #+begin_src sh
-./aes
+aes -c -128 key datos.txt
 #+end_src
 
-Dando una salida como la siguiente:
-
-#+begin_src sh
- 25%  12:28:17  aes-c   master  ?  $  ./aes
-Cipher
-
-Estado:
-32 88 31 e0
-43 5a 31 37
-f6 30 98 07
-a8 8d a2 34
-
-Cifrado
-39 02 dc 19
-25 dc 11 6a
-84 09 85 0b
-1d fb 97 32
-
-
-Estado
-
-7a 89 2b 3d
-d5 ef ca 9f
-fd 4e 10 f5
-a7 27 0b 9f
-
-Descifrado
-00 44 88 cc
-11 55 99 dd
-22 66 aa ee
-33 77 bb ff
-#+end_src
+Donde -c es la opción de compilación, -128 es la versión de cifrado,
+"key" es el archivo con la llave, y "datos.txt" es el archivo
+a cifrar
