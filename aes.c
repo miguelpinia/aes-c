@@ -232,39 +232,28 @@ void substring(char s[], char sub[], int p, int l) {
 }
 
 void cifra(byte* input, byte* output, word* expandedKeys, int longEnt, int* longSal) {
-    int i;
     int longPad = 16 - (longEnt % 16);
-    printf("Tamaño entrada: %d\n", longEnt);
     byte* state = (byte*) calloc(4 *Nb, sizeof(byte));
     byte* out = (byte*) calloc(4 * Nb, sizeof(byte));
-    for(i=0; i < longPad; i++) {
+    for(int i=0; i < longPad; i++) {
         input[longEnt + i] = (unsigned int)longPad;
     }
     *longSal = longEnt + longPad;  /* La longitud del buffer por cifrar. */
     /* ¡A cifrar! */
-    for(i=0; i < *longSal; i+=16) {
+    for(int i=0; i < *longSal; i+=16) {
         copySubArrayByte(input, state, i, i + 16);
         cipher(state, out, expandedKeys);
-        printf("Estado\n\n");
-        imprimeEstado(state);
-        printf("Salida\n\n");
-        imprimeEstado(out);
-        printf("\n\n");
         for (int j = 0; j < 16; j++) {
             output[i+j] = out[j];
         }
     }
-    for (int j = 0; j < *longSal; j++) {
-        printf("%c ", output[j]);
-    }
 }
 
 void descifra(byte* input, byte* output, word* expandedKeys, int longEnt,int *longSal) {
-    int i;
     byte* state = (byte*) calloc(4 * Nb, sizeof(byte));
     byte* out = (byte*) calloc(4 * Nb, sizeof(byte));
     /* ¡A descifrar! */
-    for (i = 0; i < longEnt; i += 16) {
+    for (int i = 0; i < longEnt; i += 16) {
         copySubArrayByte(input, state, i, i + 16);
         invCipher(state, out, expandedKeys);
         for (int j = 0; j < 16; j++) {
