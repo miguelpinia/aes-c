@@ -348,7 +348,7 @@ void ProcesaArgv(int argc, char *argv[]) {
     }
 
     if ((fpllave = fopen(archivoLlave, "r")) == NULL) {
-        fprintf(stderr, "RC2-Error: No puedo abrir la llave %s\n", archivoLlave);
+        fprintf(stderr, "AES-Error: No puedo abrir la llave %s\n", archivoLlave);
         exit(1);
     } else {
         int i;
@@ -374,8 +374,8 @@ void uso() {
     printf("\nLas opciones disponibles de uso son las siguientes:\n");
     printf("       -c: para cifrar el archivo.\n");
     printf("       -d: para descifrar el archivo.\n");
-    printf("\n\nEjemplo de uso: RC2 -c key 5 64 datos.txt\n\n");
-    printf("Donde \"key\" es el archivo con la llave, 5 es el número de bytes de la llave y\n");
-    printf("64 es la longitud máxima efectiva de la llave. \"datos.txt\" es el archivo\n");
+    printf("\n\nEjemplo de uso: aes -c -128 key datos.txt\n\n");
+    printf("Donde -c es la opción de compilación, -128 es la versión de cifrado, \n");
+    printf("\"key\" es el archivo con la llave, y \"datos.txt\" es el archivo\n");
     printf("a cifrar\n");
 }
